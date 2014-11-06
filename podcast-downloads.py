@@ -83,7 +83,7 @@ for browser, count in sorted(mp3_downloads_by_browser.items()):
     print browser, ":", count;
          
 print "Downloads by Podcast file";              
-for file, count in sorted(mp3_downloads.items()):
+for file, count in sorted(mp3_downloads.items(), reverse=True):
     totalDownloads += count;
     print "\t", file, ":", count;
         
