@@ -86,17 +86,17 @@ def fetchDailyTraffic(authTokens, start_date, end_date):
     print tabulate(analyticsResponse["rows"], headers=columnHeaders);
     print "   " * 20;
             
-def fetchKeywordReport(authTokens, start_date, end_date):
+def fetchKeywordReport(authTokens, start_date, end_date, count):
         #searches?    
     values = {'ids' : gID,
               'dimensions' : "ga:keyword",
               'metrics' : 'ga:organicSearches',
-              
+              'max-results' : count,
               'start-date' : start_date,
               'end-date' : end_date};
               
     analyticsResponse = fetchData(authTokens, values);  
-    pprint(analyticsResponse);
+    
     print analyticsResponse["profileInfo"]["profileName"], "keywords for",  analyticsResponse["query"]["start-date"], "to", analyticsResponse["query"]["end-date"];
     columnHeaders = [];
     for entry in analyticsResponse["columnHeaders"]: 
@@ -104,11 +104,12 @@ def fetchKeywordReport(authTokens, start_date, end_date):
     print tabulate(analyticsResponse["rows"], headers=columnHeaders);
     print "   " * 20;
         
-def fetchMobileReport(authTokens, start_date, end_date):
+def fetchMobileReport(authTokens, start_date, end_date, count):
     #referrals?    
     values = {'ids' : gID,
                   'dimensions' : "ga:source,ga:medium",
                   'metrics' : 'ga:sessions,ga:pageviews,ga:sessionDuration,ga:bounces',
+                  'max-results' : count,
                   'start-date' : start_date,
                   'end-date' : end_date};
         
@@ -138,17 +139,18 @@ def fetchUserReport(authTokens, start_date, end_date):
     print tabulate(analyticsResponse["rows"], headers=columnHeaders);
     print "   " * 20; 
  
-def fetchReferralReport(authTokens, start_date, end_date):
+def fetchReferralReport(authTokens, start_date, end_date, count):
     #referrals?    
     values = {'ids' : gID,
                   'dimensions' : "ga:date, ga:fullReferrer",
                   'metrics' : 'ga:visits,ga:visitors,ga:percentNewVisits, ga:pageviews',
+                  'max-results' : count,
                   'start-date' : start_date,
                   'end-date' : end_date};
         
     analyticsResponse = fetchData(authTokens, values)  
     columnHeaders = [];
-    print analyticsResponse["profileInfo"]["profileName"], "referrers for",  analyticsResponse["query"]["start-date"], "to", analyticsResponse["query"]["end-date"];
+    print analyticsResponse["profileInfo"]["profileName"], "Top Referrers for",  analyticsResponse["query"]["start-date"], "to", analyticsResponse["query"]["end-date"];
    
     for entry in analyticsResponse["columnHeaders"]:    
         columnHeaders.append(entry["name"]);
@@ -157,29 +159,32 @@ def fetchReferralReport(authTokens, start_date, end_date):
     
     
 #    
-def fetchTrafficSourcesReport(authTokens, start_date, end_date):
-    print " ()()()()()", configData["google_analytics_id"], "****"    
+def fetchTrafficSourcesReport(authTokens, start_date, end_date, count):
+     
     values = {'ids' : configData["google_analytics_id"],
                   'dimensions' : "ga:source,ga:medium",
                   'metrics' : 'ga:sessions,ga:pageviews,ga:sessionDuration,ga:exits',
                   'sort' : '-ga:sessions',
+                  'max-results' : count,
                   'start-date' : start_date,
                   'end-date' : end_date};
-    pprint (values);   
+      
     analyticsResponse = fetchData(authTokens, values)  
     columnHeaders = [];
-    print analyticsResponse["profileInfo"]["profileName"], "Browser & OS for",  analyticsResponse["query"]["start-date"], "to", analyticsResponse["query"]["end-date"];
+    print analyticsResponse["profileInfo"]["profileName"], "Traffic Sources for",  analyticsResponse["query"]["start-date"], "to", analyticsResponse["query"]["end-date"];
    
     for entry in analyticsResponse["columnHeaders"]:    
         columnHeaders.append(entry["name"]);
     print tabulate(analyticsResponse["rows"], headers=columnHeaders);
     print "   " * 20;        
      
-def fetchBrowserReport(authTokens, start_date, end_date):
+def fetchBrowserReport(authTokens, start_date, end_date, count):
     #referrals?    
     values = {'ids' : gID,
                   'dimensions' : "ga:operatingSystem,ga:operatingSystemVersion,ga:browser,ga:browserVersion",
                   'metrics' : 'ga:sessions,ga:percentNewVisits, ga:pageviews',
+                  'sort' : '-ga:sessions',
+                  'max-results' : count,
                   'start-date' : start_date,
                   'end-date' : end_date};
         
@@ -208,13 +213,14 @@ def fetchTOSReport  (authTokens, start_date, end_date):
     print tabulate(analyticsResponse["rows"], headers=columnHeaders);
     print "   " * 20;        
   
-def fetchReferringSitesReport(authTokens, start_date, end_date):
+def fetchReferringSitesReport(authTokens, start_date, end_date, count):
     #referrals?    
     values = {'ids' : gID,
                   'dimensions' : "ga:source",
                   'metrics' : 'ga:pageviews,ga:sessionDuration,ga:exits',
                   'filters' : 'ga:medium==referral',
                   'sort' : '-ga:pageviews',
+                  'max-results' : count,
                   'start-date' : start_date,
                   'end-date' : end_date};
         
@@ -227,13 +233,14 @@ def fetchReferringSitesReport(authTokens, start_date, end_date):
     print tabulate(analyticsResponse["rows"], headers=columnHeaders);
     print "   " * 20;               
         
-def fetchSearchEnginesOrganicReport(authTokens, start_date, end_date):
+def fetchSearchEnginesOrganicReport(authTokens, start_date, end_date, count):
     #referrals?    
     values = {'ids' : gID,
                   'dimensions' : "ga:source",
                   'metrics' : 'ga:pageviews,ga:sessionDuration,ga:exits',
                   'filters' : 'ga:medium==organic',
                   'sort' : '-ga:pageviews',
+                  'max-results' : count,
                   'start-date' : start_date,
                   'end-date' : end_date};
         
@@ -246,13 +253,14 @@ def fetchSearchEnginesOrganicReport(authTokens, start_date, end_date):
     print tabulate(analyticsResponse["rows"], headers=columnHeaders);
     print "   " * 20;   
  
-def fetchSearchEnginesReport(authTokens, start_date, end_date):
+def fetchSearchEnginesReport(authTokens, start_date, end_date, count):
     #referrals?    
     values = {'ids' : gID,
                   'dimensions' : "ga:source",
                   'metrics' : 'ga:pageviews,ga:sessionDuration,ga:exits',
                   'filters' : 'ga:medium==cpa,ga:medium==cpc,ga:medium==cpm,ga:medium==cpp,ga:medium==cpv,ga:medium==organic,ga:medium==ppc',
                   'sort' : '-ga:pageviews',
+                  'max-results' : count,
                   'start-date' : start_date,
                   'end-date' : end_date};
         
@@ -265,12 +273,13 @@ def fetchSearchEnginesReport(authTokens, start_date, end_date):
     print tabulate(analyticsResponse["rows"], headers=columnHeaders);
     print "   " * 20; 
  
-def fetchTopContentReport(authTokens, start_date, end_date):
+def fetchTopContentReport(authTokens, start_date, end_date, count):
     #referrals?    
     values = {'ids' : gID,
                   'dimensions' : 'ga:pagePath',
                   'metrics' : 'ga:pageviews,ga:uniquePageviews,ga:timeOnPage,ga:bounces,ga:entrances,ga:exits',
                   'sort' : '-ga:pageviews',
+                  'max-results' : count,
                   'start-date' : start_date,
                   'end-date' : end_date};
         
@@ -283,12 +292,13 @@ def fetchTopContentReport(authTokens, start_date, end_date):
     print tabulate(analyticsResponse["rows"], headers=columnHeaders);
     print "   " * 20;  
     
-def fetchTopLandingPageReport(authTokens, start_date, end_date):
+def fetchTopLandingPageReport(authTokens, start_date, end_date, count):
     #referrals?    
     values = {'ids' : gID,
                   'dimensions' : 'ga:landingPagePath',
                   'metrics' : 'ga:entrances,ga:bounces',
                   'sort' : '-ga:entrances',
+                  'max-results' : count,
                   'start-date' : start_date,
                   'end-date' : end_date};
         
@@ -300,6 +310,27 @@ def fetchTopLandingPageReport(authTokens, start_date, end_date):
         columnHeaders.append(entry["name"]);
     print tabulate(analyticsResponse["rows"], headers=columnHeaders);
     print "   " * 20;
+    
+    
+
+def fetchWeeklyEmailOverviewReport(authTokens, start_date, end_date):
+    #referrals?    
+    values = {'ids' : gID,
+                  
+                  'metrics' : 'ga:pageviewsPerSession,ga:users,ga:bounceRate,ga:sessions,ga:uniquePageviews,ga:pageviews,ga:avgSessionDuration',
+                  'start-date' : start_date,
+                  'end-date' : end_date};
+        
+    analyticsResponse = fetchData(authTokens, values);
+    
+    columnHeaders = [];
+    print analyticsResponse["profileInfo"]["profileName"], "Top Landing Page Report for",  analyticsResponse["query"]["start-date"], "to", analyticsResponse["query"]["end-date"];
+   
+    for entry in analyticsResponse["columnHeaders"]:    
+        columnHeaders.append(entry["name"]);
+    print tabulate(analyticsResponse["rows"], headers=columnHeaders);
+    print "   " * 20;
+    
      
         
 def fetchData(authTokens, values):
@@ -347,7 +378,7 @@ parser.add_argument('-a','--authorize',
                     help='Call with authorize [device token] after you have authorized via the web') # boolean arg
 
 parser.add_argument('-r','--report', action='store_true',
-                    help='Call with report to generate a traffic report. You can also set a start and end date') # boolean arg
+                    help='Call with report to generate a summary traffic report. You can also set a start and end date') # boolean arg
 
 parser.add_argument('-k','--keywordreport', action='store_true',
                     help='Call with keywordreport to generate a keyword report. You can also set a start and end date') # boolean arg
@@ -377,6 +408,9 @@ parser.add_argument('-tc','--topcontentreport', action='store_true',
                     help='Call with topcontentreport to generate most popular content, sorted by most pageviews. You can also set a start and end date') # boolean arg
 parser.add_argument('-tlp','--toplandingpagereport', action='store_true',
                     help='Call with toplandingpagereport to generate most popular landing page, sorted by most pageviews. You can also set a start and end date') # boolean arg
+parser.add_argument('-week','--weeklyemailreport', action='store_true',
+                    help='Call with weeklyemailreport to generate data for email report. You can also set a start and end date') # boolean arg
+
 
 
 
@@ -398,28 +432,29 @@ if args.begin:                       # if a filename is supplied...
 elif args.authorize:
      
     authTokens = checkForNewAuthorization(args.authorize);
-    print "Authorization is stored. Please run with -r to collect metrics."
+    print "Authorization is stored. Please run with -r or another report option to collect metrics."
        
 elif args.report:
     (start_date, end_date) = getDates();    
     authTokens = getAuthorizationFromFile();
     fetchPageViews(authTokens, start_date, end_date);
-    fetchDailyTraffic(authTokens, start_date, end_date)
+    fetchDailyTraffic(authTokens, start_date, end_date);
     
 elif args.keywordreport:    
      (start_date, end_date) = getDates();
      authTokens = getAuthorizationFromFile();
-     fetchKeywordReport(authTokens, start_date, end_date);
+     fetchKeywordReport(authTokens, start_date, end_date, 100);
     
 elif args.referralreport:
      (start_date, end_date) = getDates();
      authTokens = getAuthorizationFromFile();
-     fetchReferralReport(authTokens, start_date, end_date);
+     fetchReferralReport(authTokens, start_date, end_date, 100);
 
 elif args.mobilereport:
      (start_date, end_date) = getDates();
      authTokens = getAuthorizationFromFile();
-     fetchMobileReport(authTokens, start_date, end_date);
+     fetchMobileReport(authTokens, start_date, end_date, 100);
+     
 elif args.userreport:
      (start_date, end_date) = getDates();
      authTokens = getAuthorizationFromFile();
@@ -428,7 +463,8 @@ elif args.userreport:
 elif args.browserreport:         
      (start_date, end_date) = getDates();
      authTokens = getAuthorizationFromFile();
-     fetchBrowserReport(authTokens, start_date, end_date);
+     fetchBrowserReport(authTokens, start_date, end_date, 100);
+     
 elif args.timeonsitereport:
      (start_date, end_date) = getDates();
      authTokens = getAuthorizationFromFile();
@@ -437,32 +473,39 @@ elif args.timeonsitereport:
 elif args.alltrafficsourcesreport:
      (start_date, end_date) = getDates();
      authTokens = getAuthorizationFromFile();
-     fetchTrafficSourcesReport(authTokens, start_date, end_date);
+     fetchTrafficSourcesReport(authTokens, start_date, end_date, 100);
      
 elif args.referringsitesreport:
      (start_date, end_date) = getDates();
      authTokens = getAuthorizationFromFile();
-     fetchReferringSitesReport(authTokens, start_date, end_date);
+     fetchReferringSitesReport(authTokens, start_date, end_date, 100);
 
 elif args.searchenginesreport:         
      (start_date, end_date) = getDates();
      authTokens = getAuthorizationFromFile();
-     fetchSearchEnginesReport(authTokens, start_date, end_date);
+     fetchSearchEnginesReport(authTokens, start_date, end_date, 100);
      
 elif args.searchenginesorganicreport:     
      (start_date, end_date) = getDates();
      authTokens = getAuthorizationFromFile();
-     fetchSearchEnginesOrganicReport(authTokens, start_date, end_date);
+     fetchSearchEnginesOrganicReport(authTokens, start_date, end_date, 100);
 
 elif args.topcontentreport:     
      (start_date, end_date) = getDates();
      authTokens = getAuthorizationFromFile();
-     fetchTopContentReport(authTokens, start_date, end_date);
+     fetchTopContentReport(authTokens, start_date, end_date, 100);
      
 elif args.toplandingpagereport:
      (start_date, end_date) = getDates();
      authTokens = getAuthorizationFromFile();
-     fetchTopLandingPageReport(authTokens, start_date, end_date);  
+     fetchTopLandingPageReport(authTokens, start_date, end_date, 100); 
+     
+elif args.weeklyemailreport:      
+     (start_date, end_date) = getDates();
+     authTokens = getAuthorizationFromFile();
+     fetchWeeklyEmailOverviewReport(authTokens, start_date, end_date);
+     fetchReferralReport(authTokens, start_date, end_date, 10);
+     fetchTopLandingPageReport(authTokens, start_date, end_date, 10);
                   
 else:
     parser.print_help()                 # or print help
