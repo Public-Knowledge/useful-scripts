@@ -26,7 +26,7 @@ def doLookup(urlToUse):
         req = urllib2.Request(urlToUse, None, {})
         # Read the response
         resp= urllib2.urlopen(req).read();
-        
+        #small change
         # Interpret the JSON response
         data = json.loads(resp.decode('utf8'));
         

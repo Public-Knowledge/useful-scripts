@@ -1,0 +1,7 @@
+{
+    "name": "google analytics report generator",
+    "version": "1.0.0",
+    "google_analytics_id": "ga:NNN",
+    "client_id": "",
+    "client_secret": ""
+}
