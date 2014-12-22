@@ -3,6 +3,7 @@ import argparse
 import json
 import requests
 import json
+import time
 from datetime import datetime, timedelta
 from pprint import pprint
 from tabulate import tabulate
@@ -18,17 +19,7 @@ client_secret = configData["client_secret"];
 gID = configData["google_analytics_id"];
 
       
-def generateAuthCodeRequest():
 
-    headers = { 'Content-Type' : 'application/x-www-form-urlencoded' };
-    url = 'https://accounts.google.com/o/oauth2/device/code';
-    values = {'client_id' : client_id,
-          'scope' : 'email profile https://www.googleapis.com/auth/analytics.readonly' }
-
-    r = requests.post(url, params=values)
-    response = r.json();
-    print "Open", response['verification_url'], "in a web browser and enter", response['user_code'];
-    print "After that, run again with -a",  response['device_code']
     
 def checkForNewAuthorization(device_code):
 
@@ -42,10 +33,38 @@ def checkForNewAuthorization(device_code):
     r = requests.post(url, headers=headers, data=values);
     response = r.json();
     
-    storeAuthorization(response);
-    return response;
+    if  response.has_key("access_token"):
+        storeAuthorization(response);
+        return response;
+    else:
+        if response.has_key("error"):
+            print response["error"];
+        return {};
  
- 
+def generateAuthCodeRequest():
+
+    headers = { 'Content-Type' : 'application/x-www-form-urlencoded' };
+    url = 'https://accounts.google.com/o/oauth2/device/code';
+    values = {'client_id' : client_id,
+          'scope' : 'email profile https://www.googleapis.com/auth/analytics.readonly' }
+
+    r = requests.post(url, params=values)
+    response = r.json();
+    print "Open", response['verification_url'], "in a web browser and enter", response['user_code'];
+    print "After that, run again with -a",  response['device_code'];
+    authenticated = False;
+    time.sleep(5);
+    print "checking if authenticated yet";
+    while not(authenticated):
+        authResponse = checkForNewAuthorization(response['device_code']);
+        if  authResponse.has_key("access_token"):
+            authenticated = True;
+            print "User authentication now stored."
+        else:
+            time.sleep(5);
+    
+    return authResponse;
+
 def storeAuthorization(authTokens):
     with open('auth.txt', 'w') as outfile:
         json.dump(authTokens, outfile);
@@ -87,7 +106,7 @@ def fetchDailyTraffic(authTokens, start_date, end_date):
     print "   " * 20;
             
 def fetchKeywordReport(authTokens, start_date, end_date, count):
-        #searches?    
+         
     values = {'ids' : gID,
               'dimensions' : "ga:keyword",
               'metrics' : 'ga:organicSearches',
@@ -105,7 +124,7 @@ def fetchKeywordReport(authTokens, start_date, end_date, count):
     print "   " * 20;
         
 def fetchMobileReport(authTokens, start_date, end_date, count):
-    #referrals?    
+       
     values = {'ids' : gID,
                   'dimensions' : "ga:source,ga:medium",
                   'metrics' : 'ga:sessions,ga:pageviews,ga:sessionDuration,ga:bounces',
@@ -123,7 +142,7 @@ def fetchMobileReport(authTokens, start_date, end_date, count):
     print "   " * 20;
  
 def fetchUserReport(authTokens, start_date, end_date):
-    #referrals?    
+    
     values = {'ids' : gID,
                   'dimensions' : "ga:userType",
                   'metrics' : 'ga:sessions,ga:pageviews,ga:sessionDuration',
@@ -140,9 +159,9 @@ def fetchUserReport(authTokens, start_date, end_date):
     print "   " * 20; 
  
 def fetchReferralReport(authTokens, start_date, end_date, count):
-    #referrals?    
+     
     values = {'ids' : gID,
-                  'dimensions' : "ga:date, ga:fullReferrer",
+                  'dimensions' : "ga:fullReferrer",
                   'metrics' : 'ga:visits,ga:visitors,ga:percentNewVisits, ga:pageviews',
                   'max-results' : count,
                   'start-date' : start_date,
@@ -363,8 +382,7 @@ def getDates():
          
         now = datetime.now();
         yesterday = datetime.now() + timedelta(days = -1);
-        print now.year, now.month, now.day;
-        print yesterday.year, yesterday.month, yesterday.day;
+        
         start_date = str(yesterday.year) + "-" + str(yesterday.month) + "-" + str(yesterday.day);
         end_date = str(now.year) + "-" + str(now.month) + "-" + str(now.day);
     return (start_date, end_date);         
@@ -374,8 +392,6 @@ parser = argparse.ArgumentParser(description='Generate Simple Analytics Report')
 
 parser.add_argument('-b','--begin', action='store_true',
                     help='Call with begin if you need to generate an authorization URL and Token as your first step') # boolean arg
-parser.add_argument('-a','--authorize', 
-                    help='Call with authorize [device token] after you have authorized via the web') # boolean arg
 
 parser.add_argument('-r','--report', action='store_true',
                     help='Call with report to generate a summary traffic report. You can also set a start and end date') # boolean arg
@@ -425,16 +441,12 @@ parser.add_argument('-e','--endDate',
 args = parser.parse_args();
 
 
-if args.begin:                       # if a filename is supplied...
+if args.begin:                       
      
     generateAuthCodeRequest();
     
-elif args.authorize:
-     
-    authTokens = checkForNewAuthorization(args.authorize);
-    print "Authorization is stored. Please run with -r or another report option to collect metrics."
-       
-elif args.report:
+
+if args.report:
     (start_date, end_date) = getDates();    
     authTokens = getAuthorizationFromFile();
     fetchPageViews(authTokens, start_date, end_date);
