@@ -2,7 +2,6 @@ import sys
 import argparse
 import json
 import requests
-import json
 import time
 from datetime import datetime, timedelta
 from tabulate import tabulate
@@ -47,8 +46,12 @@ def generateAuthCodeRequest():
 
     r = requests.post(url, params=values)
     response = r.json();
+    print "   " * 20;
+    print "   " * 20;  
     print "Open", response['verification_url'], "in a web browser and enter", response['user_code'];
-    print "After that, run again with -a",  response['device_code'];
+    print "   " * 20; 
+    print "   " * 20; 
+       
     authenticated = False;
     time.sleep(5);
     print "checking if authenticated yet";
@@ -56,7 +59,9 @@ def generateAuthCodeRequest():
         authResponse = checkForNewAuthorization(response['device_code']);
         if  authResponse.has_key("access_token"):
             authenticated = True;
+            print "   " * 20; 
             print "User authentication now stored."
+            print "   " * 20; 
         else:
             time.sleep(5);
     
@@ -75,20 +80,28 @@ def getAuthorizationFromFile():
       return data; 
 
 def fetchAndPrintSummary(authTokens, values, title): 
-    analyticsResponse = fetchData(authTokens, values);              
+    analyticsResponse = fetchData(authTokens, values);   
+    print "   " * 20; 
+    print "   " * 20;  
+          
     print title, analyticsResponse["profileInfo"]["profileName"], "for date range", start_date, "to", end_date;
     for metric in analyticsResponse["totalsForAllResults"]:
             print metric, ":", analyticsResponse["totalsForAllResults"][metric];
-    print "   " * 20;     
+    print "   " * 20;  
+    print "   " * 20;    
 
 def fetchAndPrintTable(authTokens, values, title): 
-    analyticsResponse = fetchData(authTokens, values);              
+    analyticsResponse = fetchData(authTokens, values);
+   
+    print "   " * 20;
+    print "   " * 20;             
     print title, analyticsResponse["profileInfo"]["profileName"], "for date range", start_date, "to", end_date;
     columnHeaders = [];
     for entry in analyticsResponse["columnHeaders"]: 
         columnHeaders.append(entry["name"]);              
     print tabulate(analyticsResponse["rows"], headers=columnHeaders);
     print "   " * 20;
+    print "   " * 20; 
          
         
 def fetchData(authTokens, values):
@@ -118,12 +131,19 @@ def getDates():
          
         end_date = args.endDate;
     else:
-         
+        
         now = datetime.now();
         yesterday = datetime.now() + timedelta(days = -1);
+        padded_ymonth = "%02d" % (yesterday.month,)
+        padded_nmonth = "%02d" % (now.month,)
+        padded_yday = "%02d" % (yesterday.day,)
+        padded_nday = "%02d" % (now.day,)
         
-        start_date = str(yesterday.year) + "-" + str(yesterday.month) + "-" + str(yesterday.day);
-        end_date = str(now.year) + "-" + str(now.month) + "-" + str(now.day);
+        start_date = str(yesterday.year) + "-" + str(padded_ymonth) + "-" + str(padded_yday);
+        end_date = str(now.year) + "-" + str(padded_nmonth) + "-" + str(padded_nday);
+        print "Will run with default last 24 hours", start_date, "to", end_date;
+        print "To set a date, run with -s YYYY-MM-DD and -e YYYY-MM-DD"; 
+        
     return (start_date, end_date);         
 
 
@@ -142,6 +162,8 @@ parser.add_argument('-rf','--referralreport', action='store_true',
                     help='Call with referralreport to generate a referral traffic report. You can also set a start and end date') # boolean arg
 parser.add_argument('-m','--mobilereport', action='store_true',
                     help='Call with mobilereport to generate a mobile traffic report. You can also set a start and end date') # boolean arg
+parser.add_argument('-md','--mobilereportbydevice', action='store_true',
+                    help='Call with mobilereportbydevice to generate a mobile traffic report by device. You can also set a start and end date') # boolean arg
 parser.add_argument('-u','--userreport', action='store_true',
                     help='Call with userreport to generate number of new sessions vs returning sessions. You can also set a start and end date') # boolean arg
 parser.add_argument('-bo','--browserreport', action='store_true',
@@ -166,6 +188,14 @@ parser.add_argument('-tlp','--toplandingpagereport', action='store_true',
 parser.add_argument('-week','--weeklyemailreport', action='store_true',
                     help='Call with weeklyemailreport to generate data for email report. You can also set a start and end date') # boolean arg
 
+parser.add_argument('-pg','--pagepath', action='store_true',
+                    help='Call with pagepath to generate data for {}. You can also set a start and end date') # boolean arg
+
+parser.add_argument('-sc','--social', action='store_true',
+                    help='Call with social to generate metrics for referrals from social networks. You can also set a start and end date') # boolean arg
+
+parser.add_argument('-tpp','--timeperpagereport', action='store_true',
+                    help='Call with timeperpagereport to generate metrics for time per page. You can also set a start and end date') # boolean arg
 
 parser.add_argument('-s','--startDate', 
                     help='Call with startDate and a date in format YYYY-MM-DD') # boolean arg
@@ -206,7 +236,7 @@ elif args.keywordreport:
      values = {'ids' : gID,
               'dimensions' : "ga:keyword",
               'metrics' : 'ga:sessions',
-              'max-results' : "100",
+              'max-results' : "1000",
               'sort' : '-ga:sessions',
               'start-date' : start_date,
               'end-date' : end_date};
@@ -217,7 +247,7 @@ elif args.referralreport:
      authTokens = getAuthorizationFromFile();
      values = {'ids' : gID,
                   'dimensions' : "ga:fullReferrer",
-                  'metrics' : 'ga:visits,ga:visitors,ga:percentNewVisits, ga:pageviews',
+                  'metrics' : 'ga:visits,ga:visitors,ga:percentNewVisits, ga:pageviews,ga:avgTimeOnPage',
                   'max-results' : "100",
                   'sort' : '-ga:pageviews',
                   'start-date' : start_date,
@@ -235,12 +265,24 @@ elif args.mobilereport:
                   'end-date' : end_date};
      fetchAndPrintTable(authTokens, values, "Mobile Report");
      
+elif args.mobilereportbydevice:
+     (start_date, end_date) = getDates();
+     authTokens = getAuthorizationFromFile();
+     values = {'ids' : gID,
+                  'dimensions' : "ga:mobileDeviceInfo,ga:source",
+                  'metrics' : 'ga:sessions,ga:pageviews,ga:sessionDuration,ga:bounces',
+                  'segment' : 'gaid::-14',
+                  'max-results' : "100",
+                  'start-date' : start_date,
+                  'end-date' : end_date};
+     fetchAndPrintTable(authTokens, values, "Mobile Report");
+     
 elif args.userreport:
      (start_date, end_date) = getDates();
      authTokens = getAuthorizationFromFile();
      values = {'ids' : gID,
                   'dimensions' : "ga:userType",
-                  'metrics' : 'ga:sessions,ga:pageviews,ga:sessionDuration',
+                  'metrics' : 'ga:sessions,ga:pageviews,ga:sessionDuration,ga:avgTimeOnPage',
                   'start-date' : start_date,
                   'end-date' : end_date};
      fetchAndPrintTable(authTokens, values, "User Report");
@@ -261,10 +303,22 @@ elif args.timeonsitereport:
      (start_date, end_date) = getDates();
      authTokens = getAuthorizationFromFile();
      values = {'ids' : gID,
-              'metrics' : 'ga:sessions,ga:sessionDuration',
+              'metrics' : 'ga:sessions,ga:sessionDuration,ga:avgTimeOnPage,ga:uniquePageviews',
               'start-date' : start_date,
               'end-date' : end_date};
-     fetchAndPrintTable(authTokens, values, "Time on Site Report");         
+     fetchAndPrintTable(authTokens, values, "Time on Site Report");     
+     
+elif args.timeperpagereport:
+     (start_date, end_date) = getDates();
+     authTokens = getAuthorizationFromFile();
+     values = {'ids' : gID,
+               'dimensions' : "ga:source,ga:medium,ga:pagePath",
+               'metrics' : 'ga:timeOnPage',
+               'max-results' : "100",
+               'sort' : '-ga:timeOnPage',
+               'start-date' : start_date,
+               'end-date' : end_date};
+     fetchAndPrintTable(authTokens, values, "Time on Pages Report");       
      
 elif args.alltrafficsourcesreport:
      (start_date, end_date) = getDates();
@@ -277,7 +331,21 @@ elif args.alltrafficsourcesreport:
                   'start-date' : start_date,
                   'end-date' : end_date};
      fetchAndPrintTable(authTokens, values, "Traffic Sources Report");
-     
+
+elif args.trafficbypagereport:
+     (start_date, end_date) = getDates();
+     authTokens = getAuthorizationFromFile();
+     values = {'ids' : configData["google_analytics_id"],
+                  'dimensions' : "ga:source,ga:pagePath",
+                  'metrics' : 'ga:sessions,ga:pageviews,ga:sessionDuration,ga:exits',
+                  'sort' : '-ga:sessions',
+                  'max-results' : "100",
+                  'filters' : 'ga:pagePath%3D~blog',
+                  'start-date' : start_date,
+                  'end-date' : end_date};
+     fetchAndPrintTable(authTokens, values, "Traffic Sources Report");
+    
+         
      
 elif args.referringsitesreport:
      (start_date, end_date) = getDates();
@@ -372,6 +440,28 @@ elif args.weeklyemailreport:
                   'end-date' : end_date};
      fetchAndPrintTable(authTokens, values, "Top 10 Landing Pages");
      
+elif args.pagepath:     
+     (start_date, end_date) = getDates();
+     authTokens = getAuthorizationFromFile();
+     values = {'ids' : gID,
+               'dimensions' : 'ga:pagePathLevel1,ga:fullReferrer',
+                  'metrics' : 'ga:visitors,ga:pageviews',
+                  'max-results' : "100",
+                  'start-date' : start_date,
+                  'end-date' : end_date};
+     fetchAndPrintTable(authTokens, values, "Pages on Site");
+
+elif args.social:
+     (start_date, end_date) = getDates();
+     authTokens = getAuthorizationFromFile();
+     values = {'ids' : gID,
+               'dimensions' : 'ga:socialNetwork',
+                  'metrics' : 'ga:visitors,ga:pageviews,ga:percentNewVisits, ga:visits',
+                  'max-results' : "100",
+                  'start-date' : start_date,
+                  'end-date' : end_date};
+     fetchAndPrintTable(authTokens, values, "Social ");
+        
                  
 else:
     parser.print_help()                 # or print help
