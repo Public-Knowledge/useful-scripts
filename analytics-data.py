@@ -152,6 +152,10 @@ parser = argparse.ArgumentParser(description='Generate Simple Analytics Report')
 parser.add_argument('-b','--begin', action='store_true',
                     help='Call with begin if you need to generate an authorization URL and Token as your first step') # boolean arg
 
+parser.add_argument('-sc','--social', action='store_true',
+                    help='Call with social to generate metrics for referrals from social networks. You can also set a start and end date') # boolean arg
+
+
 parser.add_argument('-r','--report', action='store_true',
                     help='Call with report to generate a summary traffic report. You can also set a start and end date') # boolean arg
 
@@ -191,8 +195,6 @@ parser.add_argument('-week','--weeklyemailreport', action='store_true',
 parser.add_argument('-pg','--pagepath', action='store_true',
                     help='Call with pagepath to generate data for {}. You can also set a start and end date') # boolean arg
 
-parser.add_argument('-sc','--social', action='store_true',
-                    help='Call with social to generate metrics for referrals from social networks. You can also set a start and end date') # boolean arg
 
 parser.add_argument('-tpp','--timeperpagereport', action='store_true',
                     help='Call with timeperpagereport to generate metrics for time per page. You can also set a start and end date') # boolean arg
@@ -229,6 +231,18 @@ if args.report:
               'start-date' : start_date,
                'end-date' : end_date};
     fetchAndPrintTable(authTokens, values, "Daily Traffic Summary");
+
+elif args.social:
+     (start_date, end_date) = getDates();
+     authTokens = getAuthorizationFromFile();
+     values = {'ids' : gID,
+               'dimensions' : 'ga:socialNetwork',
+                  'metrics' : 'ga:visitors,ga:pageviews,ga:percentNewVisits, ga:visits',
+                  'max-results' : "100",
+                  'start-date' : start_date,
+                  'end-date' : end_date};
+     fetchAndPrintTable(authTokens, values, "Social ");
+        
     
 elif args.keywordreport:    
      (start_date, end_date) = getDates();
@@ -287,6 +301,18 @@ elif args.userreport:
                   'end-date' : end_date};
      fetchAndPrintTable(authTokens, values, "User Report");
 
+elif args.timeperpagereport:
+     (start_date, end_date) = getDates();
+     authTokens = getAuthorizationFromFile();
+     values = {'ids' : gID,
+               'dimensions' : "ga:source,ga:medium,ga:pagePath",
+               'metrics' : 'ga:timeOnPage',
+               'max-results' : "100",
+               'sort' : '-ga:timeOnPage',
+               'start-date' : start_date,
+               'end-date' : end_date};
+     fetchAndPrintTable(authTokens, values, "Time on Pages Report"); 
+
 elif args.browserreport:         
      (start_date, end_date) = getDates();
      authTokens = getAuthorizationFromFile();
@@ -307,42 +333,18 @@ elif args.timeonsitereport:
               'start-date' : start_date,
               'end-date' : end_date};
      fetchAndPrintTable(authTokens, values, "Time on Site Report");     
-     
-elif args.timeperpagereport:
-     (start_date, end_date) = getDates();
-     authTokens = getAuthorizationFromFile();
-     values = {'ids' : gID,
-               'dimensions' : "ga:source,ga:medium,ga:pagePath",
-               'metrics' : 'ga:timeOnPage',
-               'max-results' : "100",
-               'sort' : '-ga:timeOnPage',
-               'start-date' : start_date,
-               'end-date' : end_date};
-     fetchAndPrintTable(authTokens, values, "Time on Pages Report");       
+           
      
 elif args.alltrafficsourcesreport:
      (start_date, end_date) = getDates();
      authTokens = getAuthorizationFromFile();
      values = {'ids' : configData["google_analytics_id"],
-                  'dimensions' : "ga:source,ga:medium",
-                  'metrics' : 'ga:sessions,ga:pageviews,ga:sessionDuration,ga:exits',
-                  'sort' : '-ga:sessions',
-                  'max-results' : "100",
-                  'start-date' : start_date,
-                  'end-date' : end_date};
-     fetchAndPrintTable(authTokens, values, "Traffic Sources Report");
-
-elif args.trafficbypagereport:
-     (start_date, end_date) = getDates();
-     authTokens = getAuthorizationFromFile();
-     values = {'ids' : configData["google_analytics_id"],
-                  'dimensions' : "ga:source,ga:pagePath",
-                  'metrics' : 'ga:sessions,ga:pageviews,ga:sessionDuration,ga:exits',
-                  'sort' : '-ga:sessions',
-                  'max-results' : "100",
-                  'filters' : 'ga:pagePath%3D~blog',
-                  'start-date' : start_date,
-                  'end-date' : end_date};
+                'dimensions' : "ga:source,ga:medium",
+                'metrics' : 'ga:sessions,ga:pageviews,ga:sessionDuration,ga:exits',
+                'sort' : '-ga:sessions',
+                'max-results' : "100",
+                'start-date' : start_date,
+                'end-date' : end_date};
      fetchAndPrintTable(authTokens, values, "Traffic Sources Report");
     
          
@@ -351,26 +353,26 @@ elif args.referringsitesreport:
      (start_date, end_date) = getDates();
      authTokens = getAuthorizationFromFile();
      values = {'ids' : gID,
-                  'dimensions' : "ga:source",
-                  'metrics' : 'ga:pageviews,ga:sessionDuration,ga:exits',
-                  'filters' : 'ga:medium==referral',
-                  'sort' : '-ga:pageviews',
-                  'max-results' : "100",
-                  'start-date' : start_date,
-                  'end-date' : end_date};
+                'dimensions' : "ga:source",
+                'metrics' : 'ga:pageviews,ga:sessionDuration,ga:exits',
+                'filters' : 'ga:medium==referral',
+                'sort' : '-ga:pageviews',
+                'max-results' : "100",
+                'start-date' : start_date,
+                'end-date' : end_date};
      fetchAndPrintTable(authTokens, values, "Referring Sites Report");
  
 elif args.searchenginesreport:         
      (start_date, end_date) = getDates();
      authTokens = getAuthorizationFromFile();
      values = {'ids' : gID,
-                  'dimensions' : "ga:source",
-                  'metrics' : 'ga:pageviews,ga:sessionDuration,ga:exits',
-                  'filters' : 'ga:medium==cpa,ga:medium==cpc,ga:medium==cpm,ga:medium==cpp,ga:medium==cpv,ga:medium==organic,ga:medium==ppc',
-                  'sort' : '-ga:pageviews',
-                  'max-results' : "100",
-                  'start-date' : start_date,
-                  'end-date' : end_date};
+                'dimensions' : "ga:source",
+                'metrics' : 'ga:pageviews,ga:sessionDuration,ga:exits',
+                'filters' : 'ga:medium==cpa,ga:medium==cpc,ga:medium==cpm,ga:medium==cpp,ga:medium==cpv,ga:medium==organic,ga:medium==ppc',
+                'sort' : '-ga:pageviews',
+                'max-results' : "100",
+                'start-date' : start_date,
+                'end-date' : end_date};
      fetchAndPrintTable(authTokens, values, "Search Engine Traffic Report");
      
      
@@ -378,66 +380,65 @@ elif args.searchenginesorganicreport:
      (start_date, end_date) = getDates();
      authTokens = getAuthorizationFromFile();
      values = {'ids' : gID,
-                  'dimensions' : "ga:source",
-                  'metrics' : 'ga:pageviews,ga:sessionDuration,ga:exits',
-                  'filters' : 'ga:medium==organic',
-                  'sort' : '-ga:pageviews',
-                  'max-results' : "100",
-                  'start-date' : start_date,
-                  'end-date' : end_date};
+                'dimensions' : "ga:source",
+                'metrics' : 'ga:pageviews,ga:sessionDuration,ga:exits',
+                'filters' : 'ga:medium==organic',
+                'sort' : '-ga:pageviews',
+                'max-results' : "100",
+                'start-date' : start_date,
+                'end-date' : end_date};
      fetchAndPrintTable(authTokens, values, "Search Engines Organic Traffic Report");             
 
 elif args.topcontentreport:     
      (start_date, end_date) = getDates();
      authTokens = getAuthorizationFromFile();
      values = {'ids' : gID,
-                  'dimensions' : 'ga:pagePath',
-                  'metrics' : 'ga:pageviews,ga:uniquePageviews,ga:timeOnPage,ga:bounces,ga:entrances,ga:exits',
-                  'sort' : '-ga:pageviews',
-                  'max-results' : "100",
-                  'start-date' : start_date,
-                  'end-date' : end_date};
+                'dimensions' : 'ga:pagePath',
+                'metrics' : 'ga:pageviews,ga:uniquePageviews,ga:timeOnPage,ga:bounces,ga:entrances,ga:exits',
+                'sort' : '-ga:pageviews',
+                'max-results' : "100",
+                'start-date' : start_date,
+                'end-date' : end_date};
      fetchAndPrintTable(authTokens, values, "Top Content Report");
      
 elif args.toplandingpagereport:
      (start_date, end_date) = getDates();
      authTokens = getAuthorizationFromFile();
      values = {'ids' : gID,
-                  'dimensions' : 'ga:landingPagePath',
-                  'metrics' : 'ga:entrances,ga:bounces',
-                  'sort' : '-ga:entrances',
-                  'max-results' : "100",
-                  'start-date' : start_date,
-                  'end-date' : end_date};
+                'dimensions' : 'ga:landingPagePath',
+                'metrics' : 'ga:entrances,ga:bounces',
+                'sort' : '-ga:entrances',
+                'max-results' : "100",
+                'start-date' : start_date,
+                'end-date' : end_date};
      fetchAndPrintTable(authTokens, values, "Top Landing Pages Report");              
      
 elif args.weeklyemailreport:      
      (start_date, end_date) = getDates();
      authTokens = getAuthorizationFromFile();
      values = {'ids' : gID,
-                  
-                  'metrics' : 'ga:pageviewsPerSession,ga:users,ga:bounceRate,ga:sessions,ga:uniquePageviews,ga:pageviews,ga:avgSessionDuration',
-                  'start-date' : start_date,
-                  'end-date' : end_date};
+               'metrics' : 'ga:pageviewsPerSession,ga:users,ga:bounceRate,ga:sessions,ga:uniquePageviews,ga:pageviews,ga:avgSessionDuration',
+               'start-date' : start_date,
+               'end-date' : end_date};
      fetchAndPrintSummary(authTokens, values, "Weekly Summary");
      
      
      values = {'ids' : gID,
-                  'dimensions' : "ga:fullReferrer",
-                  'metrics' : 'ga:visits,ga:visitors,ga:percentNewVisits, ga:pageviews',
-                  'max-results' : "10",
-                  'start-date' : start_date,
-                  'end-date' : end_date};
+               'dimensions' : "ga:fullReferrer",
+               'metrics' : 'ga:visits,ga:visitors,ga:percentNewVisits, ga:pageviews',
+               'max-results' : "10",
+               'start-date' : start_date,
+               'end-date' : end_date};
      fetchAndPrintTable(authTokens, values, "Top 10 Referrals");
      
      
      values = {'ids' : gID,
-                  'dimensions' : 'ga:landingPagePath',
-                  'metrics' : 'ga:entrances,ga:bounces',
-                  'sort' : '-ga:entrances',
-                  'max-results' : "10",
-                  'start-date' : start_date,
-                  'end-date' : end_date};
+               'dimensions' : 'ga:landingPagePath',
+               'metrics' : 'ga:entrances,ga:bounces',
+               'sort' : '-ga:entrances',
+               'max-results' : "10",
+               'start-date' : start_date,
+               'end-date' : end_date};
      fetchAndPrintTable(authTokens, values, "Top 10 Landing Pages");
      
 elif args.pagepath:     
@@ -445,23 +446,11 @@ elif args.pagepath:
      authTokens = getAuthorizationFromFile();
      values = {'ids' : gID,
                'dimensions' : 'ga:pagePathLevel1,ga:fullReferrer',
-                  'metrics' : 'ga:visitors,ga:pageviews',
-                  'max-results' : "100",
-                  'start-date' : start_date,
-                  'end-date' : end_date};
+               'metrics' : 'ga:visitors,ga:pageviews',
+               'max-results' : "100",
+               'start-date' : start_date,
+               'end-date' : end_date};
      fetchAndPrintTable(authTokens, values, "Pages on Site");
-
-elif args.social:
-     (start_date, end_date) = getDates();
-     authTokens = getAuthorizationFromFile();
-     values = {'ids' : gID,
-               'dimensions' : 'ga:socialNetwork',
-                  'metrics' : 'ga:visitors,ga:pageviews,ga:percentNewVisits, ga:visits',
-                  'max-results' : "100",
-                  'start-date' : start_date,
-                  'end-date' : end_date};
-     fetchAndPrintTable(authTokens, values, "Social ");
-        
                  
 else:
     parser.print_help()                 # or print help
